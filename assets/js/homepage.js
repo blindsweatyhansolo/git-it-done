@@ -28,17 +28,28 @@ var getUserRepos = function(user) {
     // make fetch request to the url
     fetch(apiUrl)
         .then(function(response) {
-        // console.log(response);
-        response.json().then(function(data) {
-            // send data to displayRepos()
-            displayRepos(data, user);
-        });
+            // if 200 (ok), send data to displayRepos(), if false (404 - invalid search term/user not found) alert user
+        if (response.ok) {
+            response.json().then(function(data) {
+                // send data to displayRepos()
+                displayRepos(data, user);
+            });
+        } else {
+            alert("Error: GitHub User Not Found");
+        }
+    })
+    .catch(function(error) {
+        // .catch() handles network errors (network issues on API side), gets chained to the end of the .then() method 
+        alert("Unable to connect to GitHub");
     });
 };
 
 var displayRepos = function(repos, searchTerm) {
-    // console.log(repos);
-    // console.log(searchTerm);
+    // check if api returned any repos (user exists but has no repos)
+    if (repos.length === 0) {
+        repoContainerEl.textContent = "No repositories found.";
+        return;
+    }
 
     // clear old content
     repoContainerEl.textContent = "";
