@@ -2,6 +2,7 @@ var userFormEl = document.querySelector("#user-form");
 var nameInputEl = document.querySelector("#username");
 var repoContainerEl = document.querySelector("#repos-container");
 var repoSearchTerm = document.querySelector("#repo-search-term");
+var languageButtonsEl = document.querySelector("#language-buttons");
 
 var formSubmitHandler = function(event) {
     // stops browser from performing default action the event wants it to do
@@ -18,7 +19,20 @@ var formSubmitHandler = function(event) {
         repoContainerEl.textContent = "";
         nameInputEl.value = "";
     } else {
-        alert("Please enter a GitHub username to search");
+        alert("Please enter a GitHub username");
+    }
+};
+
+var buttonClickHandler = function(event) {
+    // set language to targeted buttons data-language attribute
+    var language = event.target.getAttribute("data-language");
+    
+    // pass as parameter for getFeaturedRepos
+    if (language) {
+        getFeaturedRepos(language);
+
+        // clear old content
+        repoContainerEl.textContent = "";
     }
 };
 
@@ -32,9 +46,9 @@ var getUserRepos = function(user) {
             // if 200 (ok), send data to displayRepos()
             // if false (404 - invalid search term/user not found) alert user
         if (response.ok) {
-            console.log(response);
+            // console.log(response);
             response.json().then(function(data) {
-                console.log(data);
+                // console.log(data);
                 // send data to displayRepos()
                 displayRepos(data, user);
             });
@@ -49,12 +63,29 @@ var getUserRepos = function(user) {
     });
 };
 
+var getFeaturedRepos = function(language) {
+    // format github api url to search repos with language parameter from button
+    var apiUrl = "https://api.github.com/search/repositories?q=" + language + "+is:featured&sort=help-wanted-issues";
+
+    // GET request to url
+    fetch(apiUrl).then(function(response){
+        if (response.ok) {
+            response.json().then(function(data) {
+                displayRepos(data.items, language);
+            });
+        } else {
+            alert("Error: GitHub User Not Found");
+            // alert("Error: " + response.statusText);
+        }
+    });
+};
+
 var displayRepos = function(repos, searchTerm) {
     // check if api returned any repos (user exists but has no repos)
     if (repos.length === 0) {
         repoContainerEl.textContent = "No repositories found.";
         return;
-    }
+    }    
 
     repoSearchTerm.textContent = searchTerm;
 
@@ -83,22 +114,19 @@ var displayRepos = function(repos, searchTerm) {
         if (repos[i].open_issues_count > 0) {
             statusEl.innerHTML =
                 "<i class='fas fa-times status-icon icon-danger'></i>" + repos[i].open_issues_count + " issue(s)";   
-        } else {
+        } else {    
             statusEl.innerHTML =
                 "<i class='fas fa-check-square status-icon icon-success'></i>";
-        }
+        }        
 
         // append to container
         repoEl.appendChild(statusEl);
 
         // append container to dom
         repoContainerEl.appendChild(repoEl);
-    }
-};
+    }    
+};    
 
-// form event listeners
+// event listeners for form and button container
 userFormEl.addEventListener("submit", formSubmitHandler);
-
-// call function, use user name in quotes as a parameter
-// ex: getUserRepos("blindsweatyhansolo"); will return my own!
-// getUserRepos();
+languageButtonsEl.addEventListener("click", buttonClickHandler);
