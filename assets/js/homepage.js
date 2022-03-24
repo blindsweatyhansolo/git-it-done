@@ -12,13 +12,14 @@ var formSubmitHandler = function(event) {
     var username = nameInputEl.value.trim();
 
     if (username) {
-        // on valid input passes as parameter for getUserRepos(), clears form value
+        // on valid input passes as parameter for getUserRepos()
         getUserRepos(username);
+        // clear old content
+        repoContainerEl.textContent = "";
         nameInputEl.value = "";
     } else {
         alert("Please enter a GitHub username to search");
     }
-    // console.log(event);
 };
 
 var getUserRepos = function(user) {
@@ -28,14 +29,18 @@ var getUserRepos = function(user) {
     // make fetch request to the url
     fetch(apiUrl)
         .then(function(response) {
-            // if 200 (ok), send data to displayRepos(), if false (404 - invalid search term/user not found) alert user
+            // if 200 (ok), send data to displayRepos()
+            // if false (404 - invalid search term/user not found) alert user
         if (response.ok) {
+            console.log(response);
             response.json().then(function(data) {
+                console.log(data);
                 // send data to displayRepos()
                 displayRepos(data, user);
             });
         } else {
             alert("Error: GitHub User Not Found");
+            // alert("Error: " + response.statusText);
         }
     })
     .catch(function(error) {
@@ -51,8 +56,6 @@ var displayRepos = function(repos, searchTerm) {
         return;
     }
 
-    // clear old content
-    repoContainerEl.textContent = "";
     repoSearchTerm.textContent = searchTerm;
 
     // loop over repos
@@ -92,7 +95,7 @@ var displayRepos = function(repos, searchTerm) {
     }
 };
 
-
+// form event listeners
 userFormEl.addEventListener("submit", formSubmitHandler);
 
 // call function, use user name in quotes as a parameter
